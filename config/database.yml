@@ -17,7 +17,8 @@ development:
   encoding: unicode
   database: newsy_brewsy_development
   pool: 5
-  username: jeffreyerickatz
+  username: benjaminclayman
+  host: localhost
   password:
 
 
@@ -26,7 +27,8 @@ test:
   encoding: unicode
   database: newsy_brewsy_test
   pool: 5
-  username: jeffreyerickatz
+  username: benjaminclayman
+  host: localhost
   password:
 
 production:
@@ -34,5 +36,6 @@ production:
   encoding: unicode
   database: newsy_brewsy_production
   pool: 5
-  username: jeffreyerickatz
+  username: benjaminclayman
+  host: localhost
   password:

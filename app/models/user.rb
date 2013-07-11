@@ -1,9 +1,25 @@
 class User < ActiveRecord::Base
   has_many :articles
-  attr_accessible :name, :oauth_expires_at, :oauth_token, :provider, :uid
-  attr_accessor :articles
+  attr_accessible :name, :oauth_expires_at, :oauth_token, :provider, :uid, :service
+  attr_accessor :articles, :service
 
-  def self.from_omniauth(auth)
+  def initialize(service = Facebook.new)
+    @service = service
+  end
+
+  def login
+    @service.login
+  end
+
+  def contacts
+    @service.get_contacts
+  end
+
+  def interests
+    @service.get_interests
+  end
+
+  def self.create_or_find(auth)
     where(auth.slice(:provider, :uid)).first_or_initialize.tap do |user|
       user.provider = auth.provider
       user.uid = auth.uid
@@ -14,13 +30,7 @@ class User < ActiveRecord::Base
     end
   end
 
-  def facebook
-    @facebook ||= Koala::Facebook::API.new(oauth_token)
-  end
-
-  def likes
-    facebook.get_connections('me', 'likes')
-  end
+  #MODIFY LATER
 
   def retrieve_articles
     @articles = {}
@@ -37,22 +47,4 @@ class User < ActiveRecord::Base
     end
     @articles
   end
-
-  def search(term)
-    @results = {}
-    ['name', 'work', 'education', 'interests', 'name', 'contact_email', 'current_location'].each do |field|
-      result = facebook.fql_query('SELECT name, pic_square, uid FROM user WHERE uid in (SELECT uid2 FROM friend WHERE uid1=me()) and strpos(lower(' + field + '),' + ' "' + term + '") >= 0')
-      @results[field] = result if result.present?
-    end
-    @results
-  end
-
-  def friends_by_location
-    facebook.fql_query('SELECT name, current_location.city, pic_square, uid FROM user WHERE uid in (SELECT uid2 FROM friend WHERE uid1=me())').group_by{|u| u['current_location']}.reject!{ |k| k == nil }.sort_by{ |u| u[1].count }.reverse
-  end
-
-  def query(user_attr, field)
-    facebook.fql_query('SELECT name, pic_square, uid FROM user WHERE uid in (SELECT uid2 FROM friend WHERE uid1=me()) and"' + user_attr  + '"in ' + field)
-  end
-
 end
